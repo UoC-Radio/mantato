@@ -1,0 +1,16 @@
+{
+  "producerName" : "autopilot",
+  "slotTitle" : "Playlist name",
+  "slotDuration" : "10:00-12:00",
+  "slotAuxiliaryMessage" : "A message about the playlist.",
+  "slotDescription" : "A pretty long description about the playlist.",
+  "slotURL" : "http://www.radio.uoc.gr/playlist_name.html",
+  "imageUrl" : "http://afrijamz.com/wp-content/uploads/beetles.jpg",
+  "albumTitle" : "Abbey Road",
+  "songTitle" : "Come Together",
+  "songLength" : "4:19",
+  "artist" : "The Beetles",
+  "genre" : "Rock",
+  "year" : "1969",
+  "metadata_url" : "https://www.discogs.com/The-Beatles-Abbey-Road/master/24047"
+}

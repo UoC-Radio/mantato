@@ -1,0 +1,176 @@
+{
+  "version": 2,
+  "controller": {},
+  "workers": [
+    {
+      "type": "router",
+      "realms": [
+        {
+          "name": "metadata-realm",
+          "roles": [
+            {
+              "name": "propagator",
+              "permissions": [
+                {
+                  "uri": "com.metadata.",
+                  "match": "prefix",
+                  "allow": {
+                    "call": true,
+                    "register": true,
+                    "publish": true,
+                    "subscribe": true
+                  },
+                  "disclose": {
+                    "caller": false,
+                    "publisher": false
+                  },
+                  "cache": true
+                }
+              ]
+            },
+            {
+              "name": "provider",
+              "permissions": [
+                {
+                  "uri": "com.metadata.",
+                  "match": "prefix",
+                  "allow": {
+                    "call": true,
+                    "register": false,
+                    "publish": false,
+                    "subscribe": false
+                  },
+                  "disclose": {
+                    "caller": false,
+                    "publisher": false
+                  },
+                  "cache": true
+                }
+              ]
+            },
+            {
+              "name": "service",
+              "permissions": [
+                {
+                  "uri": "com.metadata.",
+                  "match": "prefix",
+                  "allow": {
+                    "call": false,
+                    "register": true,
+                    "publish": false,
+                    "subscribe": false
+                  },
+                  "disclose": {
+                    "caller": false,
+                    "publisher": false
+                  },
+                  "cache": true
+                }
+              ]
+            },
+            {
+              "name": "client",
+              "permissions": [
+                {
+                  "uri": "com.metadata.client.",
+                  "match": "prefix",
+                  "allow": {
+                    "call": true,
+                    "register": false,
+                    "publish": false,
+                    "subscribe": true
+                  },
+                  "disclose": {
+                    "caller": false,
+                    "publisher": false
+                  },
+                  "cache": true
+                },
+                {
+                  "uri": "wamp.subscription.",
+                  "match": "prefix",
+                  "allow": {
+                    "call": true,
+                    "register": false,
+                    "publish": false,
+                    "subscribe": false
+                  },
+                  "disclose": {
+                    "caller": false,
+                    "publisher": false
+                  },
+                  "cache": true
+                }
+              ]
+            }
+          ],
+          "store": {
+            "type": "memory",
+            "event-history": [
+              {
+                "uri": "com.metadata.client.metadata_event",
+                "limit": 20
+              }
+            ]
+          }
+        }
+      ],
+      "transports": [
+        {
+          "type": "web",
+          "endpoint": {
+            "type": "tcp",
+            "port": 8080
+          },
+          "paths": {
+            "/": {
+              "type": "static",
+              "directory": ".."
+            },
+            "ws": {
+              "type": "websocket",
+              "serializers": [
+                "json"
+              ],
+              "options": {
+                "enable_webstatus": false,
+                "max_frame_size": 1048576,
+                "max_message_size": 1048576,
+                "auto_fragment_size": 65536,
+                "fail_by_drop": true,
+                "open_handshake_timeout": 2500,
+                "close_handshake_timeout": 1000,
+                "auto_ping_interval": 10000,
+                "auto_ping_timeout": 5000,
+                "auto_ping_size": 4
+              },
+              "auth": {
+                "ticket": {
+                  "type": "static",
+                  "principals": {
+                    "metadata_propagator": {
+                      "ticket": "${MANTATO_PROPAGATOR_TICKET}",
+                      "role": "propagator"
+                    },
+                    "metadata_provider": {
+                      "ticket": "${MANTATO_PROVIDER_TICKET}",
+                      "role": "provider"
+                    },
+                    "metadata_service": {
+                      "ticket": "${MANTATO_SERVICE_TICKET}",
+                      "role": "service"
+                    }
+                  }
+                },
+                "anonymous": {
+                  "type": "static",
+                  "role": "client"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
