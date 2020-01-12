@@ -10,7 +10,7 @@ from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
 from mutagen.flac import FLAC
 
-from . import metadata_utils as mu
+import metadata_utils as mu
 from autobahn.asyncio.wamp import ApplicationSession
 #from autobahn.asyncio.wamp import ApplicationRunner
 from autobahn_autoreconnect import ApplicationRunner
