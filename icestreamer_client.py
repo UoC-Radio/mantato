@@ -15,7 +15,7 @@ from enum import Enum
 class IcestreamerUpdater(ApplicationSession):
     def __init__(self, *args, **kwargs):
         super(IcestreamerUpdater, self).__init__(*args, **kwargs)
-        self._filepath = environ.get('MANTATO_ICESTREAMER_METADATA_FILE', '/tmp/icestreamer.meta')
+        self._filepath = environ.get('MANTATO_ICESTREAMER_METADATA_FILE', '/tmp/icestreamer_metadata')
 
     async def onConnect(self):
         self.join(self.config.realm, [u"ticket"], 'metadata_service')
@@ -31,9 +31,6 @@ class IcestreamerUpdater(ApplicationSession):
         # (any session that .publish()es to this topic).
 
         def write_info(msg):
-            if not self.__update_rt:
-                return
-
             data = json.loads(msg)
 
             with open(self._filepath, 'w') as f:
