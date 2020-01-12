@@ -15,7 +15,7 @@ import json
 class SchedulerMetadataProvider(ApplicationSession):
     def __init__(self, *args, **kwargs):
         super(SchedulerMetadataProvider, self).__init__(*args, **kwargs)
-        ip = environ.get('MANTATO_SCHEDULER_IP')
+        ip = environ.get('MANTATO_SCHEDULER_IP', "127.0.0.1")
         self.__metadata_address = 'http://{}:9670'.format(ip)
 
     def get_metadata(self):
