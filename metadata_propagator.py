@@ -165,6 +165,8 @@ class MetadataPropagator(ApplicationSession):
             self.last_event = json_string
             self.publish(u'com.metadata.client.metadata_event', json_string)
             self.call(u'com.metadata.rds.send_rds', json_string)
+            self.call(u'com.metadata.icestreamer.write_info', json_string)
+
         self.last_file = filepath
 
     def handle_dashboard_message(self, dashboard_message):
