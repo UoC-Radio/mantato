@@ -3,6 +3,9 @@ A metadata flow manager for receiving and propagating song metadata based on htt
 
 Currently supports only autopilot metadata, however some stub functionality is already there to support messages from [producer's dashboard](https://github.com/UoC-Radio/py-producers-dashboard).
 
+# Overview
+![Mantato sketch](./docs/mantato-sketch.svg)
+
 # Consumption
 
 ## javascript - example from our site.
