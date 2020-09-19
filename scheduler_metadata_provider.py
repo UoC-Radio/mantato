@@ -3,9 +3,9 @@ from sys import exit
 from os import environ
 import asyncio
 import autobahn.wamp.exception
-from autobahn.asyncio.wamp import ApplicationSession
-# from autobahn.asyncio.wamp import ApplicationRunner
-from autobahn_autoreconnect import ApplicationRunner
+from autobahn.twisted.wamp import ApplicationSession
+from autobahn.twisted.wamp import ApplicationRunner
+# from autobahn_autoreconnect import ApplicationRunner
 import requests
 from math import ceil
 import re
@@ -76,4 +76,4 @@ if __name__ == '__main__':
         environ.get("MANTATO_AUTOBAHN_ROUTER", u"ws://127.0.0.1/ws"),
         u"metadata-realm",
     )
-    runner.run(SchedulerMetadataProvider)
+    runner.run(SchedulerMetadataProvider, auto_reconnect=True)
