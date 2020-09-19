@@ -3,9 +3,9 @@ from sys import exit
 from os import environ
 import asyncio
 import autobahn.wamp.exception
-from autobahn.twisted.wamp import ApplicationSession
-from autobahn.twisted.wamp import ApplicationRunner
-# from autobahn_autoreconnect import ApplicationRunner
+from autobahn.asyncio.wamp import ApplicationSession
+# from autobahn.asyncio.wamp import ApplicationRunner
+from autobahn_autoreconnect import ApplicationRunner
 from shutil import which
 import subprocess
 import json
@@ -60,4 +60,10 @@ if __name__ == '__main__':
         environ.get("MANTATO_AUTOBAHN_ROUTER", u"ws://127.0.0.1/ws"),
         u"metadata-realm",
     )
-    runner.run(RDSUpdater, auto_reconnect=True)
+
+    try:
+        loop = asyncio.get_event_loop()
+        asyncio.ensure_future(runner.run(RDSUpdater), loop=loop)
+        loop.run_forever()
+    except Exception as e:
+        print(e)

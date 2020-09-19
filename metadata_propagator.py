@@ -11,9 +11,9 @@ from mutagen.id3 import ID3
 from mutagen.flac import FLAC
 
 import metadata_utils as mu
-from autobahn.twisted.wamp import ApplicationSession
-from autobahn.twisted.wamp import ApplicationRunner
-# from autobahn_autoreconnect import ApplicationRunner
+from autobahn.asyncio.wamp import ApplicationSession
+#from autobahn.asyncio.wamp import ApplicationRunner
+from autobahn_autoreconnect import ApplicationRunner
 
 
 class MetadataPropagator(ApplicationSession):
@@ -211,4 +211,10 @@ class MetadataPropagator(ApplicationSession):
 
 if __name__ == '__main__':
     runner = ApplicationRunner(environ.get("MANTATO_AUTOBAHN_ROUTER", u"ws://127.0.0.1/ws"), u"metadata-realm")
-    runner.run(MetadataPropagator, auto_reconnect=True)
+
+    try:
+        loop = asyncio.get_event_loop()
+        asyncio.ensure_future(runner.run(MetadataPropagator), loop=loop)
+        loop.run_forever()
+    except Exception as e:
+        print(e)
