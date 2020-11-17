@@ -152,7 +152,7 @@ class MetadataPropagator(ApplicationSession):
 
     def handle_scheduler_message(self, scheduler_message):
 
-        if not self.last_scheduler_message:
+        if not scheduler_message:
             return
 
         self.last_scheduler_message = scheduler_message
