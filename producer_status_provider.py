@@ -22,7 +22,7 @@ class ProducerStatusProvider(ApplicationSession):
             await self.call('com.metadata.switch_to_autopilot')
             print("Switched to autopilot")
         else:
-            await self.call('com.metadata.switch_to_autopilot', sys.argv[1])
+            await self.call('com.metadata.switch_to_producer', sys.argv[1])
             print("Switched to producer", sys.argv[1])
 
         self.leave()
