@@ -18,7 +18,7 @@ class ProducerStatusProvider(ApplicationSession):
             raise Exception("Invalid authmethod {}".format(challenge.method))
 
     async def onJoin(self, details):
-        if sys.argv < 2 or sys.argv[1] == '0':
+        if len(sys.argv) < 2 or sys.argv[1] == '0':
             await self.call('com.metadata.switch_to_autopilot')
             print("Switched to autopilot")
         else:
