@@ -43,6 +43,10 @@ class MetadataPropagator(ApplicationSession):
         self.image_URL = 'http://afrijamz.com/wp-content/uploads/beetles.jpg'
         # Rest options are read from audio file metadata
 
+        # Keep the message from the scheduler in order to use it when switching back from producer, to immediately
+        # handle and send the current metadata
+        self.last_scheduler_message = {}
+
         self.zones = []
         self.schedule = []
 
@@ -147,6 +151,12 @@ class MetadataPropagator(ApplicationSession):
         return json.dumps(message, ensure_ascii=False)
 
     def handle_scheduler_message(self, scheduler_message):
+
+        if not self.last_scheduler_message:
+            return
+
+        self.last_scheduler_message = scheduler_message
+
         # Omit the scheduler message if a producer is live
         if self.producer_name != 'Autopilot':
             return
@@ -162,15 +172,18 @@ class MetadataPropagator(ApplicationSession):
         # Bypasses some spurious cases when metadata provider sends multiple times the same file
         if filepath != self.last_file:
             json_string = self.create_metadata_string(filepath)
-            self.last_event = json_string
-            self.publish(u'com.metadata.client.metadata_event', json_string)
-            self.call(u'com.metadata.rds.send_rds', json_string)
-            self.call(u'com.metadata.icestreamer.write_info', json_string)
+            self.send_event(json_string)
 
         self.last_file = filepath
 
     def handle_dashboard_message(self, dashboard_message):
         pass
+
+    def send_event(self, json_string):
+        self.last_event = json_string
+        self.publish(u'com.metadata.client.metadata_event', json_string)
+        self.call(u'com.metadata.rds.send_rds', json_string)
+        self.call(u'com.metadata.icestreamer.write_info', json_string)
 
     async def onConnect(self):
         self.join(self.config.realm, [u"ticket"], 'metadata_propagator')
@@ -182,15 +195,15 @@ class MetadataPropagator(ApplicationSession):
             raise Exception("Invalid authmethod {}".format(challenge.method))
 
     async def onJoin(self, details):
-        # a remote procedure; see frontend.py for a Python front-end
-        # that calls this. Any language with WAMP bindings can now call
-        # this procedure if its connected to the same router and realm.
         def switch_to_producer(producer_name):
             self.producer_name = producer_name
+            json_string = self.create_metadata_string('')
+            self.send_event(json_string)
             return 'Switched to producer:{0}.'.format(producer_name)
 
-        def switch_to_autopilot(producer_name):
+        def switch_to_autopilot():
             self.producer_name = 'Autopilot'
+            self.handle_scheduler_message(self.last_scheduler_message)
             return 'Switched to Autopilot.'
 
         def item_scheduled(scheduler_message):
