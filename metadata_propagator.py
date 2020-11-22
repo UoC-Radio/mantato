@@ -150,7 +150,7 @@ class MetadataPropagator(ApplicationSession):
         # JSON requires double quotes for strings
         return json.dumps(message, ensure_ascii=False)
 
-    def handle_scheduler_message(self, scheduler_message):
+    def handle_scheduler_message(self, scheduler_message, force_send=False):
 
         if not scheduler_message:
             return
@@ -170,7 +170,7 @@ class MetadataPropagator(ApplicationSession):
 
         # Publish event only if the file that is sent is different.
         # Bypasses some spurious cases when metadata provider sends multiple times the same file
-        if filepath != self.last_file:
+        if filepath != self.last_file or force_send:
             json_string = self.create_metadata_string(filepath)
             self.send_event(json_string)
 
@@ -203,7 +203,7 @@ class MetadataPropagator(ApplicationSession):
 
         def switch_to_autopilot():
             self.producer_name = 'Autopilot'
-            self.handle_scheduler_message(self.last_scheduler_message)
+            self.handle_scheduler_message(self.last_scheduler_message, force_send=True)
             return 'Switched to Autopilot.'
 
         def item_scheduled(scheduler_message):
