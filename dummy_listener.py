@@ -16,12 +16,35 @@ class DummyListener(ApplicationSession):
             current_time = now.strftime("%H:%M:%S")
             print(f"[{current_time}] Got event: {message}")
 
+        print('Join')
         await self.subscribe(on_event, 'com.metadata.client.metadata_event')
 
     async def onConnect(self):
+        print('Connect')
         self.join(self.config.realm, ['anonymous'])
 
+    def onOpen(self, transport):
+        print('Open')
+        super().onOpen(transport)
+
+    def onUserError(self, fail, msg):
+        print('User error')
+        super().onUserError(fail, msg)
+
+    def onClose(self, wasClean):
+        print('Close')
+        super().onClose(wasClean)
+
+    def onMessage(self, message):
+        print('Message')
+        super().onMessage(message)
+
+    def onWelcome(self, msg):
+        print('Welcome')
+        super(DummyListener, self).onWelcome(msg)
+
     def onDisconnect(self):
+        print('Disconnect')
         asyncio.get_event_loop().stop()
 
 
