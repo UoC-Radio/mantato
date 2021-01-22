@@ -113,8 +113,12 @@ class MetadataPropagator(ApplicationSession):
 
             if self.image_from_album:
                 if data is not None:
-                    local_path = '/tmp/cover.jpg'
-                    mu.prepare_cover(data, local_path)
+                    try:
+                        local_path = '/tmp/cover.jpg'
+                        mu.prepare_cover(data, local_path)
+                    except Exception as e:
+                        print(f'Error while saving coverart: {filepath}')
+                        local_path = './fallback_cover.jpg'
                 else:
                     local_path = './fallback_cover.jpg'
 
