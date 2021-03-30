@@ -20,7 +20,7 @@ hyperframe==5.2.0
 hyperlink==20.0.1
 idna==2.5
 incremental==17.5.0
-Jinja2==2.11.2
+Jinja2==2.11.3
 lmdb==1.0.0
 MarkupSafe==1.1.1
 mistune==0.8.4
