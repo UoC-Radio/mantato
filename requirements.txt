@@ -59,7 +59,7 @@ txaio==20.4.1
 txtorcon==20.0.0
 u-msgpack-python==2.7.0
 ujson==3.2.0
-urllib3==1.24.3
+urllib3==1.26.5
 watchdog==0.10.3
 Werkzeug==1.0.1
 zlmdb==20.8.1
