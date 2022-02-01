@@ -53,7 +53,7 @@ service-identity==18.1.0
 setproctitle==1.1.10
 six==1.15.0
 sortedcontainers==2.2.2
-treq==20.4.1
+treq==22.1.0
 Twisted==20.3.0
 txaio==20.4.1
 txtorcon==20.0.0
