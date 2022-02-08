@@ -40,7 +40,7 @@ class SchedulerMetadataProvider(ApplicationSession):
         elapsed = int(data['current_song']['Elapsed'])
         overlap = int(data['overlap'])
 
-        next = min(1, duration - elapsed - ceil(overlap / 2))
+        next = max(1, duration - elapsed - ceil(overlap / 2))
 
         return data, next
 
