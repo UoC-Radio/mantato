@@ -112,22 +112,22 @@ class MetadataPropagator(ApplicationSession):
                 data = None
 
             if self.image_from_album:
-                if data is not None:
-                    try:
-                        local_path = '/tmp/cover.jpg'
-                        mu.prepare_cover(data, local_path)
-                    except Exception as e:
-                        print(f'Error while saving coverart: {filepath}')
-                        local_path = './fallback_cover.jpg'
-                else:
-                    local_path = './fallback_cover.jpg'
+                #if data is not None:
+                #    try:
+                #        local_path = '/tmp/cover.jpg'
+                #        mu.prepare_cover(data, local_path)
+                #    except Exception as e:
+                #        print(f'Error while saving coverart: {filepath}')
+                #        local_path = './fallback_cover.jpg'
+                #else:
+                #    local_path = './fallback_cover.jpg'
 
-                remote_path = '/dev/shm/cover.jpg'    
+                #remote_path = '/dev/shm/cover.jpg'    
                               
-                mu.copy_to_remote(local_path, remote_path, 'eden.radio.uoc.gr', 22, 'metadata')
+                #mu.copy_to_remote(local_path, remote_path, 'eden.radio.uoc.gr', 22, 'metadata')
                 
                 # Redundant for now
-                message['imageUrl'] = 'http://radio.uoc.gr/metadata/cover.jpg'
+                message['imageUrl'] = '<deprecated>'
         else:
             self.fill_empty_audio_metadata(message)
 
@@ -185,9 +185,10 @@ class MetadataPropagator(ApplicationSession):
 
     def send_event(self, json_string):
         self.last_event = json_string
+        print('Sending event', json_string)
         self.publish(u'com.metadata.client.metadata_event', json_string)
-        self.call(u'com.metadata.rds.send_rds', json_string)
-        self.call(u'com.metadata.icestreamer.write_info', json_string)
+        #self.call(u'com.metadata.rds.send_rds', json_string)
+        #self.call(u'com.metadata.icestreamer.write_info', json_string)
 
     async def onConnect(self):
         self.join(self.config.realm, [u"ticket"], 'metadata_propagator')
