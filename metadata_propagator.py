@@ -148,7 +148,7 @@ class MetadataPropagator(ApplicationSession):
             try:            
                 self.parse_metadata_from_file(filepath, message)
             except Exception as err: # Generic exception for catching exceptions with problematic files (maybe need to narrow the exception for logging)
-                print(err)
+                #print(err)
                 self.fill_empty_audio_metadata(message)
 
         # JSON requires double quotes for strings
@@ -228,7 +228,7 @@ class MetadataPropagator(ApplicationSession):
 
 
 if __name__ == '__main__':
-    runner = ApplicationRunner(environ.get("MANTATO_AUTOBAHN_ROUTER", u"ws://127.0.0.1/ws"), u"metadata-realm")
+    runner = ApplicationRunner(environ.get("MANTATO_AUTOBAHN_ROUTER", u"ws://127.0.0.1:8080/ws"), u"metadata-realm")
 
     try:
         loop = asyncio.get_event_loop()
