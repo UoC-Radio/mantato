@@ -41,8 +41,6 @@ class SchedulerMetadataProvider(ApplicationSession):
         overlap = int(data['overlap'])
 
         next = duration - elapsed - ceil(overlap / 2)
-        next += 1 # Avoid multiple calls
-
         return data, next
 
     async def onConnect(self):
@@ -58,13 +56,11 @@ class SchedulerMetadataProvider(ApplicationSession):
         while True:
             try:
                 data, next = self.get_metadata()
-                # quick fix for not calling multiple times during track change
-                #if next < 1:
-                #    continue
+
                 if data is not None:
                     print(data)
                     _ = await self.call(u'com.metadata.item_scheduled', data)
-                await asyncio.sleep(next)
+                await asyncio.sleep(max(1, next))  # avoid corner cases where next is zero
             except autobahn.wamp.exception.TransportLost as e:
                 exit(111)  # Connection refused error code
             except autobahn.wamp.exception.ApplicationError as e:
@@ -73,7 +69,7 @@ class SchedulerMetadataProvider(ApplicationSession):
 
 if __name__ == '__main__':
     runner = ApplicationRunner(
-        environ.get("MANTATO_AUTOBAHN_ROUTER", u"ws://127.0.0.1/ws"),
+        environ.get("MANTATO_AUTOBAHN_ROUTER", u"ws://127.0.0.1:8080/ws"),
         u"metadata-realm",
     )
 
