@@ -187,8 +187,8 @@ class MetadataPropagator(ApplicationSession):
         self.last_event = json_string
         print('Sending event', json_string)
         self.publish(u'com.metadata.client.metadata_event', json_string)
-        #self.call(u'com.metadata.rds.send_rds', json_string)
-        #self.call(u'com.metadata.icestreamer.write_info', json_string)
+        self.call(u'com.metadata.rds.send_rds', json_string)
+        self.call(u'com.metadata.icestreamer.write_info', json_string)
 
     async def onConnect(self):
         self.join(self.config.realm, [u"ticket"], 'metadata_propagator')
