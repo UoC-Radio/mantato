@@ -23,7 +23,7 @@ incremental==17.5.0
 Jinja2==2.11.3
 lmdb==1.0.0
 MarkupSafe==1.1.1
-mistune==0.8.4
+mistune==2.0.3
 msgpack==1.0.0
 mutagen==1.45.1
 netaddr==0.8.0
