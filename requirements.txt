@@ -27,7 +27,7 @@ mistune==0.8.4
 msgpack==1.0.0
 mutagen==1.45.1
 netaddr==0.8.0
-numpy==1.15.4
+numpy==1.22.0
 paramiko==2.10.1
 passlib==1.7.2
 pathtools==0.1.2
