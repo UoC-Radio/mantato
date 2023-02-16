@@ -61,6 +61,6 @@ u-msgpack-python==2.7.0
 ujson==5.4.0
 urllib3==1.26.5
 watchdog==0.10.3
-Werkzeug==1.0.1
+Werkzeug==2.2.3
 zlmdb==20.8.1
 zope.interface==5.1.0
