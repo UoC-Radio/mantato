@@ -64,3 +64,4 @@ watchdog==0.10.3
 Werkzeug==1.0.1
 zlmdb==20.8.1
 zope.interface==5.1.0
+autobahn-autoreconnect @ git+https://github.com/isra17/autobahn-autoreconnect@master

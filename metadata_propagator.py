@@ -1,23 +1,19 @@
 #!/usr/bin/env python3
-import sys
-sys.path.append("/tmp/TEST")
-
 from os import environ, path
 import json
+import time
 import asyncio
 from mutagen.oggvorbis import OggVorbis
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
 from mutagen.flac import FLAC
 
-import metadata_utils as mu
 from autobahn.asyncio.wamp import ApplicationSession
-#from autobahn.asyncio.wamp import ApplicationRunner
+# from autobahn.asyncio.wamp import ApplicationRunner
 from autobahn_autoreconnect import ApplicationRunner
 
 
 class MetadataPropagator(ApplicationSession):
-
     def __init__(self, *args, **kwargs):
         super(MetadataPropagator, self).__init__(*args, **kwargs)
         # Source: Producer dashboard (i.e., JS client in a webpage, or Python client in a desktop app)
@@ -38,9 +34,7 @@ class MetadataPropagator(ApplicationSession):
         # TODO: Same as above
         self.slot_URL = 'http://www.radio.uoc.gr/playlist_name.html'
         # Source: Scheduler (image of a show) OR metadata
-        # An option to send either the image of the album, image for the playlist or the image for the show.
-        self.image_from_album = True
-        self.image_URL = 'http://afrijamz.com/wp-content/uploads/beetles.jpg'
+
         # Rest options are read from audio file metadata
 
         # Keep the message from the scheduler in order to use it when switching back from producer, to immediately
@@ -56,100 +50,81 @@ class MetadataPropagator(ApplicationSession):
         # Last file
         self.last_file = ""
 
-    def load_zones(self):
-        pass
-
-    def load_schedule(self):
-        pass
-
     def update_zone(self, zone_name):
         self.slot_title = zone_name
 
-    def fill_empty_audio_metadata(self, message):
-        message['albumTitle'] = ''
-        message['songTitle'] = ''
-        message['songLength'] = ''
-        message['artist'] = ''
-        message['genre'] = ''
-        message['year'] = ''
-        message['metadata_url'] = ''
-        if self.image_from_album:
-            message['imageUrl'] = ''
-
-    def parse_metadata_from_file(self, filepath, message):
-        test_parsing_succeded = True
-
-        # Step 1. Read file and read an auxiliary metadata field
-
-        # Step 2. In case of success continue to fill the message
-        if test_parsing_succeded:
-            file_extension = filepath.split('.')[-1]
-            if file_extension == 'mp3':
-                id3_metadata = ID3(filepath)
-                message['albumTitle'] = mu.safe_get(id3_metadata, 'TALB')
-                message['songTitle'] = mu.safe_get(id3_metadata, 'TIT2')
-                message['songLength'] = mu.format_duration(MP3(filepath).info.length)
-                message['artist'] = mu.safe_get(id3_metadata, 'TPE1')
-                message['genre'] = mu.safe_get(id3_metadata, 'TCON')
-                message['year'] = mu.safe_get(id3_metadata, 'TDRL')
-                message['metadata_url'] = mu.format_url(mu.safe_get(id3_metadata, 'TXXX:MusicBrainz Album Id'))
-
-                data, _ = mu.get_id3_front_cover(id3_metadata)
-
-            elif file_extension == 'flac' or file_extension == 'ogg':
-                vorbis_metadata = FLAC(filepath) if file_extension == 'flac' else OggVorbis(filepath)
-                message['albumTitle'] = mu.squeeze(mu.safe_get(vorbis_metadata, 'album'))
-                message['songTitle'] = mu.squeeze(mu.safe_get(vorbis_metadata, 'title'))
-                message['songLength'] = mu.format_duration(vorbis_metadata.info.length)
-                message['artist'] = mu.squeeze(mu.safe_get(vorbis_metadata, 'artist'))
-                message['genre'] = mu.squeeze(mu.safe_get(vorbis_metadata, 'genre'))
-                message['year'] = mu.squeeze(mu.safe_get(vorbis_metadata, 'date'))
-                message['metadata_url'] = mu.format_url(mu.squeeze(mu.safe_get(vorbis_metadata, 'musicbrainz_albumid')))
-
-                data, _ = mu.get_vorbis_front_cover(vorbis_metadata)
+    def _parse_metadata_from_file(self, filepath, message):
+        def safe_get(dictionary, key):
+            # return the string representation, because sometimes the value is an object, rather than the required 
+            # string 
+            if key in dictionary:
+                val = dictionary[key]
+                return str(val) if not isinstance(val, list) else val
             else:
-                self.fill_empty_audio_metadata(message)
-                data = None
+                return ''
 
-            if self.image_from_album:
-                #if data is not None:
-                #    try:
-                #        local_path = '/tmp/cover.jpg'
-                #        mu.prepare_cover(data, local_path)
-                #    except Exception as e:
-                #        print(f'Error while saving coverart: {filepath}')
-                #        local_path = './fallback_cover.jpg'
-                #else:
-                #    local_path = './fallback_cover.jpg'
+        def format_duration(track_length):
+            duration_format = "%M:%S" if track_length < 3600 else "%H:%M:%S"
+            return time.strftime(duration_format, time.gmtime(track_length))
 
-                #remote_path = '/dev/shm/cover.jpg'    
-                              
-                #mu.copy_to_remote(local_path, remote_path, 'eden.radio.uoc.gr', 22, 'metadata')
-                
-                # Redundant for now
-                message['imageUrl'] = '<deprecated>'
+        def squeeze(list_or_str):
+            if isinstance(list_or_str, list):
+                return ", ".join(str(x) for x in l)
+            elif isinstance(list_or_str, str):
+                return list_or_str
+            else:
+                return ''
+
+        # TODO add support for discogs url
+        def format_url(release_id):
+            return 'https://musicbrainz.org/release/{0}'.format(release_id) if len(release_id) > 0 else ''
+
+        file_extension = path.splitext(filepath)[-1]
+        if file_extension == '.mp3':
+            id3_metadata = ID3(filepath)
+            file_metadata = \
+                {
+                    'albumTitle': safe_get(id3_metadata, 'TALB'),
+                    'songTitle': safe_get(id3_metadata, 'TIT2'),
+                    'songLength': format_duration(MP3(filepath).info.length),
+                    'artist': safe_get(id3_metadata, 'TPE1'),
+                    'genre': safe_get(id3_metadata, 'TCON'),
+                    'year': safe_get(id3_metadata, 'TDRL'),
+                    'metadata_url': format_url(safe_get(id3_metadata, 'TXXX:MusicBrainz Album Id'))
+                }
+
+        elif file_extension == '.flac' or file_extension == '.ogg':
+            vorbis_metadata = FLAC(filepath) if file_extension == 'flac' else OggVorbis(filepath)
+            file_metadata = \
+                {
+                    'albumTitle': squeeze(safe_get(vorbis_metadata, 'album')),
+                    'songTitle': squeeze(safe_get(vorbis_metadata, 'title')),
+                    'songLength': format_duration(vorbis_metadata.info.length),
+                    'artist': squeeze(safe_get(vorbis_metadata, 'artist')),
+                    'genre': squeeze(safe_get(vorbis_metadata, 'genre')),
+                    'year': squeeze(safe_get(vorbis_metadata, 'date')),
+                    'metadata_url': format_url(squeeze(safe_get(vorbis_metadata, 'musicbrainz_albumid')))
+                }
+
         else:
-            self.fill_empty_audio_metadata(message)
+            raise NotImplementedError(f'{file_extension} not supported!')
+
+        message.update(file_metadata)
 
     def create_metadata_string(self, filepath):
-        # Open template
-        message = ''
-        with open('message.json') as json_data:
-            message = json.load(json_data)
-            message['producerName'] = self.producer_name
-            message['slotTitle'] = self.slot_title
-            message['slotDuration'] = self.slot_duration
-            message['slotAuxiliaryMessage'] = self.slot_auxiliary_message
-            message['slotDescription'] = self.slot_description
-            message['slotURL'] = self.slot_URL
-            message['imageUrl'] = self.image_URL
+        message = {'producerName': self.producer_name, 'slotTitle': self.slot_title, 'slotDuration': self.slot_duration,
+                   'slotAuxiliaryMessage': self.slot_auxiliary_message, 'slotDescription': self.slot_description,
+                   'slotURL': self.slot_URL, 'imageUrl': self.image_URL}
 
-            # Fill the rest by parsing the file
-            try:            
-                self.parse_metadata_from_file(filepath, message)
-            except Exception as err: # Generic exception for catching exceptions with problematic files (maybe need to narrow the exception for logging)
-                #print(err)
-                self.fill_empty_audio_metadata(message)
+        # Fill the rest by parsing the file
+        try:
+            self._parse_metadata_from_file(filepath, message)
+        except (NotImplementedError, Exception) as e:
+            # Generic exception for catching exceptions with problematic files
+            # TOOD: narrow down the exception
+            empty_audio_message = {'albumTitle': '', 'songTitle': '', 'songLength': '', 'artist': '', 'genre': '',
+                                   'year': '', 'metadata_url': ''}
+            message.update(empty_audio_message)
 
         # JSON requires double quotes for strings
         return json.dumps(message, ensure_ascii=False)
@@ -179,9 +154,6 @@ class MetadataPropagator(ApplicationSession):
             self.send_event(json_string)
 
         self.last_file = filepath
-
-    def handle_dashboard_message(self, dashboard_message):
-        pass
 
     def send_event(self, json_string):
         self.last_event = json_string

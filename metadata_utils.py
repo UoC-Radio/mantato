@@ -8,34 +8,6 @@ import io
 import os
 
 
-def safe_get(dictionary, key):
-    # return the string representation, because sometimes the value is an object, rather than the required string
-    if key in dictionary:
-        val = dictionary[key]
-        return str(val) if not isinstance(val, list) else val
-    else:
-        return ''
-
-
-def format_duration(track_length):
-    duration_format = "%M:%S" if track_length < 3600 else "%H:%M:%S"
-    return time.strftime(duration_format, time.gmtime(track_length))
-
-
-def squeeze(l):
-    if isinstance(l, list):
-        return ", ".join(str(x) for x in l)
-    elif isinstance(l, str):
-        return l
-    else:
-        return ''
-
-
-# TODO add support for discogs url
-def format_url(release_id):
-    return 'https://musicbrainz.org/release/{0}'.format(release_id) if len(release_id) > 0 else ''
-
-
 def get_id3_front_cover(metadata):
     # From what I have seen is some examples, in case of multiple images 'APIC:' contains the front cover,
     # while 'APIC(1):', 'APIC(2):', etc contain the rest images
