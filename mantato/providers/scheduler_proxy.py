@@ -30,7 +30,13 @@ class AudioSchedulerProxy(threading.Thread):
         self._topic = 'com.metadata.item_scheduled'
 
         self._channel = self._connection.channel()
-        self._channel.queue_declare(queue=self._queue_name, auto_delete=True)
+
+        # Consider a message not consumed within 5 seconds as invalid
+        queue_arguments = \
+            {
+                'x-message-ttl': 5000
+            }
+        self._channel.queue_declare(queue=self._queue_name, auto_delete=True, arguments=queue_arguments)
         self._channel.exchange_declare(
             exchange=self._exchange_name, exchange_type='topic')
 
