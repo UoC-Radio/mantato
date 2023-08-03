@@ -9,36 +9,22 @@ from time import sleep, time
 
 import requests
 from pika import (BasicProperties, BlockingConnection, ConnectionParameters,
-                  PlainCredentials)
+                  PlainCredentials, exceptions)
+from retry import retry
+
+from functools import partialmethod
+from mantato.messaging_utils import MessagingEntity, run
 
 
-class AudioSchedulerProxy(threading.Thread):
+class AudioSchedulerProxy(threading.Thread, MessagingEntity):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        broker_host = environ.get("MANTATO_BROKER_HOST", u"127.0.0.1")
-        broker_port = environ.get("MANTATO_BROKER_PORT", u"5672")
+
+        self._initialize_connection()
+        self._initialize_queues()
+
         scheduler_host = environ.get('MANTATO_SCHEDULER_IP', "127.0.0.1")
-
         self._metadata_address = f'http://{scheduler_host}:9670'
-        self._queue_name = 'scheduler_metadata_queue'
-        self._exchange_name = 'scheduler_metadata_exchange'
-
-        credentials = PlainCredentials("guest", "guest")
-        parameters = ConnectionParameters(
-            host=broker_host, port=broker_port, credentials=credentials)
-        self._connection = BlockingConnection(parameters)
-        self._topic = 'com.metadata.item_scheduled'
-
-        self._channel = self._connection.channel()
-
-        # Consider a message not consumed within 5 seconds as invalid
-        queue_arguments = \
-            {
-                'x-message-ttl': 5000
-            }
-        self._channel.queue_declare(queue=self._queue_name, auto_delete=True, arguments=queue_arguments)
-        self._channel.exchange_declare(
-            exchange=self._exchange_name, exchange_type='topic')
 
         self._next_check = int(time())
         self._is_running = True
@@ -57,19 +43,18 @@ class AudioSchedulerProxy(threading.Thread):
 
             sleep(1)
 
-    def stop(self):
-        print("Stopping...")
-        self._is_running = False
-        # Wait until all the data events have been processed
-        self._connection.process_data_events(time_limit=1)
-        if self._connection.is_open:
-            self._connection.close()
-        print("Stopped")
+    def _initialize_queues(self):
+        # Outgoing queue settings
+        self._exchange_name = 'scheduler_metadata_exchange'
+        self._topic = 'com.metadata.item_scheduled'
+
+        self._channel.exchange_declare(
+            exchange=self._exchange_name, exchange_type='topic')
 
     def _publish(self, message):
         self._channel.basic_publish(exchange=self._exchange_name,
                                     routing_key=self._topic,
-                                    body=json.dumps(message),
+                                    body=json.dumps(message).encode(),
                                     properties=BasicProperties(
                                         content_type='application/json')
                                     )
@@ -99,11 +84,4 @@ class AudioSchedulerProxy(threading.Thread):
 
 
 if __name__ == "__main__":
-    publisher = AudioSchedulerProxy()
-
-    try:
-        publisher.start()
-    except KeyboardInterrupt:
-        publisher.stop()
-    finally:
-        publisher.join()
+    run(AudioSchedulerProxy)
