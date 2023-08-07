@@ -39,14 +39,20 @@ class MetadataRouter(MessagingEntity):
         self.last_scheduler_message = {}
 
         # Last JSON event
-        self.last_event = None
+        self._last_event = None
 
     def run(self):
-        def callback(ch, method, properties, body):
+        def item_scheduled_callback(ch, method, properties, body):
             self._handle_scheduler_message(json.loads(body))
 
+        def history_enquiry_callback(ch, method, props, body):
+            self._send_history(props)
+
         self._channel.basic_consume(
-            queue=self._scheduler_queue_name, on_message_callback=callback, auto_ack=True)
+            queue=self._scheduler_queue_name, on_message_callback=item_scheduled_callback, auto_ack=True)
+
+        self._channel.basic_consume(queue='message_history', on_message_callback=history_enquiry_callback,
+                                    auto_ack=True)
 
         self._channel.start_consuming()
 
@@ -75,10 +81,13 @@ class MetadataRouter(MessagingEntity):
 
         self._channel.exchange_declare(exchange=self._exchange_name, exchange_type='topic')
 
-    def _send_event(self, json_string):
-        self.last_event = json_string
+        # Message history queue settings
+        self._channel.queue_declare(queue='message_history')
 
-        print('Sending event', json_string)
+    def _send_event(self, json_string):
+        self._last_event = json_string
+
+        # print('Sending event', json_string)
         self._publish(json_string)
 
     def _publish(self, message):
@@ -90,8 +99,18 @@ class MetadataRouter(MessagingEntity):
                                         content_type='application/json')
                                     )
 
+    def _send_history(self, request_properties):
+        self._channel.basic_publish(exchange='',
+                                    routing_key=request_properties.reply_to,
+                                    body=json.dumps(self._last_event).encode(),
+                                    properties=BasicProperties(
+                                        correlation_id=request_properties.correlation_id,
+                                        content_type='application/json')
+                                    )
+
     def _handle_scheduler_message(self, scheduler_message, force_send=False):
-        print(f'Received scheduler message {scheduler_message}')
+        # print(f'Received scheduler message {scheduler_message}')
+
         if not scheduler_message:
             return
 
@@ -127,11 +146,6 @@ class MetadataRouter(MessagingEntity):
     #     self.handle_scheduler_message(self.last_scheduler_message, force_send=True)
     #     return 'Switched to Autopilot.'
     #
-    # def item_scheduled(self, scheduler_message):
-    #     self.handle_scheduler_message(scheduler_message)
-    #
-    # def get_latest_scheduled(self):
-    #     return self.last_event
 
 
 if __name__ == "__main__":
