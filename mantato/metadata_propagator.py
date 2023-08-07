@@ -48,10 +48,16 @@ class MetadataRouter(MessagingEntity):
         def history_enquiry_callback(ch, method, props, body):
             self._send_history(props)
 
+        def switch_producer_callback(ch, method, props, body):
+            self._switch_producer(body, props)
+
         self._channel.basic_consume(
             queue=self._scheduler_queue_name, on_message_callback=item_scheduled_callback, auto_ack=True)
 
         self._channel.basic_consume(queue='message_history', on_message_callback=history_enquiry_callback,
+                                    auto_ack=True)
+
+        self._channel.basic_consume(queue='switch_producer', on_message_callback=switch_producer_callback,
                                     auto_ack=True)
 
         self._channel.start_consuming()
@@ -84,6 +90,9 @@ class MetadataRouter(MessagingEntity):
         # Message history queue settings
         self._channel.queue_declare(queue='message_history')
 
+        # Producer status queue
+        self._channel.queue_declare(queue='switch_producer')
+
     def _send_event(self, json_string):
         self._last_event = json_string
 
@@ -107,6 +116,9 @@ class MetadataRouter(MessagingEntity):
                                         correlation_id=request_properties.correlation_id,
                                         content_type='application/json')
                                     )
+
+    def _switch_producer(self, body, request_properties):
+        raise NotImplementedError
 
     def _handle_scheduler_message(self, scheduler_message, force_send=False):
         # print(f'Received scheduler message {scheduler_message}')
