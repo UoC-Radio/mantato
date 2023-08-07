@@ -16,7 +16,7 @@ from functools import partialmethod
 from mantato.messaging_utils import MessagingEntity, run
 
 
-class AudioSchedulerProxy(threading.Thread, MessagingEntity):
+class AudioSchedulerProxy(MessagingEntity):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 

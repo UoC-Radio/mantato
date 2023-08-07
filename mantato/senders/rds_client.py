@@ -10,11 +10,13 @@ from mantato.senders.sender_base import SenderBase
 
 class RDSUpdater(SenderBase):
     def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
+
+        self._rds_tool_executable_name = 'rds_tool'
 
         # Locate rds_tool
-        if not which('ls'):
-            exit('rds_tool executable not found in the system. Please install it.')
+        if not which(self._rds_tool_executable_name):
+            exit(f'{self._rds_tool_executable_name} executable not found in the system.')
 
         self._update_rt = True
 
@@ -23,6 +25,7 @@ class RDSUpdater(SenderBase):
             return
 
         data = json.loads(body)
+
         # Simple strategy, cut from the end
         rds_message = '\"{} by {}\"'.format(data['songTitle'], data['artist'])[:64]
 

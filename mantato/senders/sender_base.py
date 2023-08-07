@@ -10,7 +10,7 @@ from mantato.messaging_utils import MessagingEntity, run
 
 class SenderBase(MessagingEntity):
     def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Locate rds_tool
         if not which('ls'):

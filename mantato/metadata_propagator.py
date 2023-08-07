@@ -78,7 +78,7 @@ class MetadataRouter(MessagingEntity):
     def _send_event(self, json_string):
         self.last_event = json_string
 
-        # print('Sending event', json_string)
+        print('Sending event', json_string)
         self._publish(json_string)
 
     def _publish(self, message):
@@ -91,7 +91,7 @@ class MetadataRouter(MessagingEntity):
                                     )
 
     def _handle_scheduler_message(self, scheduler_message, force_send=False):
-
+        print(f'Received scheduler message {scheduler_message}')
         if not scheduler_message:
             return
 
@@ -101,24 +101,17 @@ class MetadataRouter(MessagingEntity):
         if self._slot_metadata.producer_name != 'Autopilot':
             return
 
+        previous_filepath = self._audio_file_metadata.filepath
+
         self._slot_metadata.update_from_scheduler_json(scheduler_message)
         self._audio_file_metadata.update_from_scheduler_json(scheduler_message)
 
-        filepath = scheduler_message['current_song']['Path']
-
         # Publish event only if the file that is sent is different. Handles case when scheduler metadata provider is
         # restarted
-        if filepath != self._audio_file_metadata.filepath or force_send:
-            json_string = self._create_metadata_string()
-            self._send_event(json_string)
-
-        self.last_file = filepath
-
-    def _create_metadata_string(self):
-        message = self._slot_metadata.to_partial_message() | self._audio_file_metadata.to_partial_message()
-
-        # JSON requires double quotes for strings
-        return json.dumps(message, ensure_ascii=False)
+        if previous_filepath != self._audio_file_metadata.filepath or force_send:
+            # Create a message by merging slot/zone metadata with audio file metadata
+            message = self._slot_metadata.to_partial_message() | self._audio_file_metadata.to_partial_message()
+            self._send_event(message)
 
     def _update_zone(self, zone_name):
         self._slot_metadata.slot_title = zone_name

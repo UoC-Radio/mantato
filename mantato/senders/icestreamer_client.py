@@ -7,7 +7,7 @@ from mantato.senders.sender_base import SenderBase
 
 class IcestreamerUpdater(SenderBase):
     def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self._filepath = environ.get('MANTATO_ICESTREAMER_METADATA_FILE', '/tmp/icestreamer_metadata')
 
