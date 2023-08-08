@@ -5,10 +5,10 @@ import subprocess
 import json
 
 from mantato.messaging_utils import run
-from mantato.senders.sender_base import SenderBase
+from mantato.consumers.consumer_base import ConsumerBase
 
 
-class RDSUpdater(SenderBase):
+class RDSUpdater(ConsumerBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

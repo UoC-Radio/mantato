@@ -8,7 +8,7 @@ from abc import abstractmethod
 from mantato.messaging_utils import MessagingEntity, run
 
 
-class SenderBase(MessagingEntity):
+class ConsumerBase(MessagingEntity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

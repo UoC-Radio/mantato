@@ -93,11 +93,14 @@ class MetadataRouter(MessagingEntity):
         # Producer status queue
         self._channel.queue_declare(queue='switch_producer')
 
-    def _send_event(self, json_string):
-        self._last_event = json_string
+    def _send_event(self):
+        # Create a message by merging slot/zone metadata with audio file metadata
+        message = self._slot_metadata.to_partial_message() | self._audio_file_metadata.to_partial_message()
+
+        self._last_event = message
 
         # print('Sending event', json_string)
-        self._publish(json_string)
+        self._publish(message)
 
     def _publish(self, message):
         # TODO: Make it partial function since most parameters are same for all calls
@@ -118,7 +121,25 @@ class MetadataRouter(MessagingEntity):
                                     )
 
     def _switch_producer(self, body, request_properties):
-        raise NotImplementedError
+        producer_name = body.decode()
+
+        if producer_name == 'Autopilot':
+            self._slot_metadata.producer_name = producer_name
+            self._handle_scheduler_message(self.last_scheduler_message, force_send=True)
+        else:
+            # For now empty fields except producer name which is needed for informing about the switch
+            self._slot_metadata = SlotMetadata(producer_name=producer_name)
+            self._audio_file_metadata = AudioFileMetadata()
+
+            self._send_event()
+
+        self._channel.basic_publish(exchange='',
+                                    routing_key=request_properties.reply_to,
+                                    body='',
+                                    properties=BasicProperties(
+                                        correlation_id=request_properties.correlation_id,
+                                        content_type='application/json')
+                                    )
 
     def _handle_scheduler_message(self, scheduler_message, force_send=False):
         # print(f'Received scheduler message {scheduler_message}')
@@ -140,24 +161,10 @@ class MetadataRouter(MessagingEntity):
         # Publish event only if the file that is sent is different. Handles case when scheduler metadata provider is
         # restarted
         if previous_filepath != self._audio_file_metadata.filepath or force_send:
-            # Create a message by merging slot/zone metadata with audio file metadata
-            message = self._slot_metadata.to_partial_message() | self._audio_file_metadata.to_partial_message()
-            self._send_event(message)
+            self._send_event()
 
     def _update_zone(self, zone_name):
         self._slot_metadata.slot_title = zone_name
-
-    # def switch_to_producer(self, producer_name):
-    #     self.producer_name = producer_name
-    #     json_string = self.create_metadata_string('')
-    #     self.send_event(json_string)
-    #     return 'Switched to producer:{0}.'.format(producer_name)
-    #
-    # def switch_to_autopilot(self):
-    #     self.producer_name = 'Autopilot'
-    #     self.handle_scheduler_message(self.last_scheduler_message, force_send=True)
-    #     return 'Switched to Autopilot.'
-    #
 
 
 if __name__ == "__main__":

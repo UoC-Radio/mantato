@@ -93,7 +93,7 @@ class AudioFileMetadata:
     song_length: str = ''
     artist: str = ''
     genre: str = ''
-    year: str = ''
+    date: str = ''
     metadata_url: str = ''
 
     def update_from_scheduler_json(self, scheduler_message):
@@ -115,18 +115,18 @@ class AudioFileMetadata:
         self.song_length = format_duration(MP3(self.filepath).info.length)
         self.artist = safe_get(id3_metadata, 'TPE1')
         self.genre = safe_get(id3_metadata, 'TCON')
-        self.year = safe_get(id3_metadata, 'TDRL')
+        self.date = safe_get(id3_metadata, 'TDRL')
         self.metadata_url = format_url(safe_get(id3_metadata, 'TXXX:MusicBrainz Album Id'))
 
     def _parse_vorbis(self):
         file_extension = path.splitext(self.filepath)[-1]
-        vorbis_metadata = FLAC(self.filepath) if file_extension == 'flac' else OggVorbis(self.filepath)
+        vorbis_metadata = FLAC(self.filepath) if file_extension == '.flac' else OggVorbis(self.filepath)
         self.album_title = squeeze(safe_get(vorbis_metadata, 'album'))
         self.song_title = squeeze(safe_get(vorbis_metadata, 'title'))
         self.song_length = format_duration(vorbis_metadata.info.length)
         self.artist = squeeze(safe_get(vorbis_metadata, 'artist'))
         self.genre = squeeze(safe_get(vorbis_metadata, 'genre'))
-        self.year = squeeze(safe_get(vorbis_metadata, 'date'))
+        self.date = squeeze(safe_get(vorbis_metadata, 'date'))
         self.metadata_url = format_url(squeeze(safe_get(vorbis_metadata, 'musicbrainz_albumid')))
 
     def to_partial_message(self):
@@ -137,7 +137,7 @@ class AudioFileMetadata:
                 'songLength': self.song_length,
                 'artist': self.artist,
                 'genre': self.genre,
-                'year': self.year,
+                'date': self.date,
                 'metadata_url': self.metadata_url
             }
 
