@@ -1,20 +1,11 @@
-from sys import exit
-import threading
-from shutil import which
-import subprocess
-import json
 from abc import abstractmethod
 
-from mantato.messaging_utils import MessagingEntity, run
+from mantato.messaging_utils import MessagingEntity
 
 
 class ConsumerBase(MessagingEntity):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # Locate rds_tool
-        if not which('ls'):
-            exit('rds_tool executable not found in the system. Please install it.')
 
         self._initialize_connection()
         self._initialize_queues()

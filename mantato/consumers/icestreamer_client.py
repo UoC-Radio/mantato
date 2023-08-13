@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import json
 from os import environ
-from mantato.messaging_utils import run
+
 from mantato.consumers.consumer_base import ConsumerBase
+from mantato.messaging_utils import run
 
 
 class IcestreamerUpdater(ConsumerBase):

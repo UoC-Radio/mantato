@@ -1,18 +1,12 @@
 #!/usr/bin/env python3
 import json
-import re
-import threading
 from math import ceil
 from os import environ
-from sys import exit
 from time import sleep, time
 
 import requests
-from pika import (BasicProperties, BlockingConnection, ConnectionParameters,
-                  PlainCredentials, exceptions)
-from retry import retry
+from pika import (BasicProperties)
 
-from functools import partialmethod
 from mantato.messaging_utils import MessagingEntity, run
 
 

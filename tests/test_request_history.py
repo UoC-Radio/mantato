@@ -1,14 +1,30 @@
 #!/usr/bin/env python
-import pika
-import uuid
 import json
+import uuid
+
+import pika
+from dotenv import load_dotenv
+from pika import PlainCredentials, ConnectionParameters, BlockingConnection
+
+from mantato.messaging_utils import ConnectionOptions
 
 
 class MessageHistoryRpcClient(object):
 
     def __init__(self):
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host='localhost'))
+        load_dotenv('../etc/.env')
+
+        connection_options = ConnectionOptions(username='rastapank-listener', password='guest')
+
+        # Connection settings
+        credentials = PlainCredentials(connection_options.username, connection_options.password)
+        parameters = ConnectionParameters(
+            host=connection_options.broker_host,
+            port=connection_options.broker_port,
+            virtual_host=connection_options.broker_vhost,
+            credentials=credentials)
+
+        self.connection = BlockingConnection(parameters)
 
         self.channel = self.connection.channel()
 
@@ -31,7 +47,7 @@ class MessageHistoryRpcClient(object):
         self.response = None
         self.corr_id = str(uuid.uuid4())
         self.channel.basic_publish(
-            exchange='',
+            exchange='propagator_history_exchange',
             routing_key='message_history',
             properties=pika.BasicProperties(
                 reply_to=self.callback_queue,

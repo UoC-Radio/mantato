@@ -1,8 +1,20 @@
-from os import environ
-from abc import abstractmethod
+import os
 import threading
+from abc import abstractmethod
+from dataclasses import dataclass, field
+from functools import partial
+
 from pika import PlainCredentials, BlockingConnection, ConnectionParameters, exceptions
 from retry import retry
+
+
+@dataclass
+class ConnectionOptions:
+    broker_host: str = field(default_factory=partial(os.environ.get, 'MANTATO_BROKER_HOST', '127.0.0.1'))
+    broker_port: int = field(default_factory=partial(os.environ.get, 'MANTATO_BROKER_PORT', 5672))
+    broker_vhost: str = field(default_factory=partial(os.environ.get, 'MANTATO_BROKER_VHOST', '/'))
+    username: str = field(default_factory=partial(os.environ.get, 'MANTATO_USERNAME', 'guest'))
+    password: str = field(default_factory=partial(os.environ.get, 'MANTATO_PASSWORD', 'guest'))
 
 
 class MessagingEntity(threading.Thread):
@@ -12,13 +24,15 @@ class MessagingEntity(threading.Thread):
         self._is_running = True
 
     def _initialize_connection(self):
-        broker_host = environ.get("MANTATO_BROKER_HOST", u"127.0.0.1")
-        broker_port = environ.get("MANTATO_BROKER_PORT", u"5672")
+        connection_options = ConnectionOptions()
 
         # Connection settings
-        credentials = PlainCredentials("guest", "guest")
+        credentials = PlainCredentials(connection_options.username, connection_options.password)
         parameters = ConnectionParameters(
-            host=broker_host, port=broker_port, credentials=credentials)
+            host=connection_options.broker_host,
+            port=connection_options.broker_port,
+            virtual_host=connection_options.broker_vhost,
+            credentials=credentials)
 
         self._connection = BlockingConnection(parameters)
         self._channel = self._connection.channel()

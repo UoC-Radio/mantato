@@ -1,28 +1,14 @@
 #!/usr/bin/env python3
-from os import environ, path
-import json
-import time
-from typing import Literal
 
 import json
-import re
-import threading
-from math import ceil
-from os import environ
-from sys import exit
-from time import sleep, time
-import os
-import requests
 
-from pika import (BasicProperties, BlockingConnection, ConnectionParameters,
-                  PlainCredentials, exceptions)
-from retry import retry
+from pika import (BasicProperties)
 
-from mantato.metadata_utils import SlotMetadata, AudioFileMetadata
 from mantato.messaging_utils import MessagingEntity, run
+from mantato.metadata_utils import SlotMetadata, AudioFileMetadata
 
 
-class MetadataRouter(MessagingEntity):
+class MetadataPropagator(MessagingEntity):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
@@ -43,6 +29,7 @@ class MetadataRouter(MessagingEntity):
 
     def run(self):
         def item_scheduled_callback(ch, method, properties, body):
+            print('Callback called')
             self._handle_scheduler_message(json.loads(body))
 
         def history_enquiry_callback(ch, method, props, body):
@@ -54,7 +41,7 @@ class MetadataRouter(MessagingEntity):
         self._channel.basic_consume(
             queue=self._scheduler_queue_name, on_message_callback=item_scheduled_callback, auto_ack=True)
 
-        self._channel.basic_consume(queue='message_history', on_message_callback=history_enquiry_callback,
+        self._channel.basic_consume(queue=self._history_callback_queue, on_message_callback=history_enquiry_callback,
                                     auto_ack=True)
 
         self._channel.basic_consume(queue='switch_producer', on_message_callback=switch_producer_callback,
@@ -88,7 +75,15 @@ class MetadataRouter(MessagingEntity):
         self._channel.exchange_declare(exchange=self._exchange_name, exchange_type='topic')
 
         # Message history queue settings
-        self._channel.queue_declare(queue='message_history')
+        # This is defined as named exchange with type topic in order to restrict user permissions
+        self._history_exchange_name = 'propagator_history_exchange'
+        self._history_topic = 'com.metadata.metadata_history'
+        self._channel.exchange_declare(exchange=self._history_exchange_name, exchange_type='topic')
+        result = self._channel.queue_declare(queue='', exclusive=True)
+        self._history_callback_queue = result.method.queue
+        self._channel.queue_bind(exchange=self._history_exchange_name,
+                                 queue=self._history_callback_queue,
+                                 routing_key='message_history')
 
         # Producer status queue
         self._channel.queue_declare(queue='switch_producer')
@@ -99,7 +94,7 @@ class MetadataRouter(MessagingEntity):
 
         self._last_event = message
 
-        # print('Sending event', json_string)
+        print('Sending event', message)
         self._publish(message)
 
     def _publish(self, message):
@@ -112,6 +107,7 @@ class MetadataRouter(MessagingEntity):
                                     )
 
     def _send_history(self, request_properties):
+        print('Sending history', self._last_event)
         self._channel.basic_publish(exchange='',
                                     routing_key=request_properties.reply_to,
                                     body=json.dumps(self._last_event).encode(),
@@ -142,7 +138,7 @@ class MetadataRouter(MessagingEntity):
                                     )
 
     def _handle_scheduler_message(self, scheduler_message, force_send=False):
-        # print(f'Received scheduler message {scheduler_message}')
+        print(f'Received scheduler message {scheduler_message}')
 
         if not scheduler_message:
             return
@@ -168,4 +164,4 @@ class MetadataRouter(MessagingEntity):
 
 
 if __name__ == "__main__":
-    run(MetadataRouter)
+    run(MetadataPropagator)

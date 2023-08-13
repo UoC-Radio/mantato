@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-from sys import exit
-from shutil import which
-import subprocess
 import json
+import subprocess
+from shutil import which
+from sys import exit
 
-from mantato.messaging_utils import run
 from mantato.consumers.consumer_base import ConsumerBase
+from mantato.messaging_utils import run
 
 
 class RDSUpdater(ConsumerBase):

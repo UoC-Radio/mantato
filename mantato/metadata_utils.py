@@ -1,12 +1,11 @@
-import time
 import os
-from os import environ, path
+import time
 from dataclasses import dataclass
 
-from mutagen.oggvorbis import OggVorbis
-from mutagen.mp3 import MP3
-from mutagen.id3 import ID3
 from mutagen.flac import FLAC
+from mutagen.id3 import ID3
+from mutagen.mp3 import MP3
+from mutagen.oggvorbis import OggVorbis
 
 
 def safe_get(dictionary, key):
@@ -98,7 +97,7 @@ class AudioFileMetadata:
 
     def update_from_scheduler_json(self, scheduler_message):
         self.filepath = scheduler_message['current_song']['Path']
-        file_extension = path.splitext(self.filepath)[-1]
+        file_extension = os.path.splitext(self.filepath)[-1]
         if not os.path.exists(self.filepath) or file_extension not in ['.mp3', '.flac', '.ogg']:
             return
         elif file_extension == '.mp3':
@@ -119,7 +118,7 @@ class AudioFileMetadata:
         self.metadata_url = format_url(safe_get(id3_metadata, 'TXXX:MusicBrainz Album Id'))
 
     def _parse_vorbis(self):
-        file_extension = path.splitext(self.filepath)[-1]
+        file_extension = os.path.splitext(self.filepath)[-1]
         vorbis_metadata = FLAC(self.filepath) if file_extension == '.flac' else OggVorbis(self.filepath)
         self.album_title = squeeze(safe_get(vorbis_metadata, 'album'))
         self.song_title = squeeze(safe_get(vorbis_metadata, 'title'))
