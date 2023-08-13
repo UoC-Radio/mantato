@@ -155,7 +155,7 @@ class MetadataPropagator(MessagingEntity):
         self._audio_file_metadata.update_from_scheduler_json(scheduler_message)
 
         # Publish event only if the file that is sent is different. Handles case when scheduler metadata provider is
-        # restarted
+        # restarted or spurious multiple publishing of the same message
         if previous_filepath != self._audio_file_metadata.filepath or force_send:
             self._send_event()
 
