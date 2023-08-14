@@ -1,0 +1,11 @@
+%%{init: {'theme':'dark'}}%%
+flowchart TD
+    autopilot:::provider --> |JSON| metadata_propagator[metadata propagator]:::propagator
+    media_player[media player in studio PC]:::provider --> |MPRIS| metadata_propagator
+    producer:::provider --> |manually written| metadata_propagator
+    metadata_propagator -->web[Web page]:::consumer
+    metadata_propagator --> mobile[mobile app]:::consumer
+    metadata_propagator --> rds[RDS client]:::consumer
+    classDef provider fill:#009900
+    classDef propagator fill:#8811ff
+    classDef consumer fill:#ff8811

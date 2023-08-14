@@ -10,48 +10,4 @@ Currently supports only autopilot metadata, however some stub functionality is a
 
 # Consumption
 
-## javascript - example from our site.
-
-```javascript
-var connection = new autobahn.Connection({
-  url: 'ws://83.212.124.250:8080/ws',
-  realm: 'metadata-realm',
-  authid: "anonymous"
-});
-
-connection.onopen = function(session) {
-
-  // 1) subscribe to a topic
-  function onevent(args) {
-    //console.log("Event:", args[0]);
-    metadata = $.parseJSON(args[0]);
-    if (metadata.songTitle && metadata.artist) {
-      $('#autopilot').html('Autopilot plays ' + metadata.slotTitle);
-      $('#metadata').html(metadata.songTitle + ' by ' + metadata.artist + ' <a href=' + metadata.metadata_url + ' target="_blank">[' + metadata.albumTitle + ']</a>' + '<br/>');
-    }
-  }
-  session.subscribe('com.metadata.client.metadata_event', onevent).then(
-    function(sub) {
-      console.log("subscribed with subscription ID " + sub.id);
-      session.call('wamp.subscription.get_events', [sub.id, 1]).then(
-        function(history) {
-          metadata = $.parseJSON(history[0].args[0]);
-          if (metadata.songTitle && metadata.artist) {
-            $('#autopilot').html('Autopilot plays ' + metadata.slotTitle);
-            $('#metadata').html(metadata.songTitle + ' by ' + metadata.artist + ' <a href=' + metadata.metadata_url + ' target="_blank">[' + metadata.albumTitle + ']</a>' + '<br/>');
-          }
-        },
-        function(err) {
-          console.log("could not retrieve event history", err);
-        }
-      );
-    },
-    function(err) {
-      console.log("could not subscribe", err);
-    }
-  );
-
-};
-
-connection.open();
-```
+TODO
