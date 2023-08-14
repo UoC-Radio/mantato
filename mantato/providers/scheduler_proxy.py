@@ -77,5 +77,9 @@ class AudioSchedulerProxy(MessagingEntity):
         return data
 
 
-if __name__ == "__main__":
+def main():
     run(AudioSchedulerProxy)
+
+
+if __name__ == "__main__":
+    main()

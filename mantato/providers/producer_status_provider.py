@@ -54,13 +54,18 @@ class ProducerStatusProvider(object):
         return self._response
 
 
-producer_status_rpc = ProducerStatusProvider()
+def main():
+    producer_status_rpc = ProducerStatusProvider()
 
-if len(sys.argv) < 2 or sys.argv[1] == '0':
-    producer_name = 'Autopilot'
-    response = producer_status_rpc.call('Autopilot')
-    print("Switched to autopilot")
-else:
-    producer_name = sys.argv[1]
-    response = producer_status_rpc.call(sys.argv[1])
-    print("Switched to producer", sys.argv[1])
+    if len(sys.argv) < 2 or sys.argv[1] == '0':
+        producer_name = 'Autopilot'
+        response = producer_status_rpc.call('Autopilot')
+        print("Switched to autopilot")
+    else:
+        producer_name = sys.argv[1]
+        response = producer_status_rpc.call(sys.argv[1])
+        print("Switched to producer", sys.argv[1])
+
+
+if __name__ == "__main__":
+    main()

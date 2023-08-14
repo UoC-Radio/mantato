@@ -35,5 +35,9 @@ class RDSUpdater(ConsumerBase):
         subprocess.run(cmd)
 
 
-if __name__ == "__main__":
+def main():
     run(RDSUpdater)
+
+
+if __name__ == "__main__":
+    main()

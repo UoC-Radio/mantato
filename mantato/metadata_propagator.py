@@ -163,5 +163,9 @@ class MetadataPropagator(MessagingEntity):
         self._slot_metadata.slot_title = zone_name
 
 
-if __name__ == "__main__":
+def main():
     run(MetadataPropagator)
+
+
+if __name__ == "__main__":
+    main()

@@ -19,7 +19,10 @@ class IcestreamerUpdater(ConsumerBase):
             f.writelines([data['artist'] + '\n', data['songTitle'] + '\n'])
 
 
-if __name__ == "__main__":
+def main():
     run(IcestreamerUpdater)
 
+
+if __name__ == "__main__":
+    main()
 
