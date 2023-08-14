@@ -83,7 +83,7 @@ class MetadataPropagator(MessagingEntity):
         self._history_callback_queue = result.method.queue
         self._channel.queue_bind(exchange=self._history_exchange_name,
                                  queue=self._history_callback_queue,
-                                 routing_key='message_history')
+                                 routing_key=self._history_topic)
 
         # Producer status queue
         self._channel.queue_declare(queue='switch_producer')
@@ -107,7 +107,7 @@ class MetadataPropagator(MessagingEntity):
                                     )
 
     def _send_history(self, request_properties):
-        print('Sending history', self._last_event)
+        print(f'Sending history {self._last_event} to {request_properties.reply_to}')
         self._channel.basic_publish(exchange='',
                                     routing_key=request_properties.reply_to,
                                     body=json.dumps(self._last_event).encode(),

@@ -48,7 +48,7 @@ class MessageHistoryRpcClient(object):
         self.corr_id = str(uuid.uuid4())
         self.channel.basic_publish(
             exchange='propagator_history_exchange',
-            routing_key='message_history',
+            routing_key='com.metadata.metadata_history',
             properties=pika.BasicProperties(
                 reply_to=self.callback_queue,
                 correlation_id=self.corr_id,
