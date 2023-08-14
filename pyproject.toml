@@ -3,7 +3,7 @@ name = "mantato"
 version = "0.1.0"
 description = "A metadata flow manager for receiving and propagating song metadata based on rabbitmq"
 authors = ["George Galanakis <ggalan87@gmail.com>"]
-license = "GPL-3.0"
+license = "AGPLv3"
 readme = "README.md"
 
 [tool.poetry.scripts]
