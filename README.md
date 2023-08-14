@@ -9,5 +9,4 @@ Currently supports only autopilot metadata, however some stub functionality is a
 ![Mantato sketch](./docs/mantato-sketch.svg)
 
 # Consumption
-
-TODO
+Examples on how to consume the metadata are included in tests folder.
