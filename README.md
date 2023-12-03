@@ -9,4 +9,4 @@ Currently supports only autopilot metadata, however some stub functionality is a
 ![Mantato sketch](./docs/mantato-sketch.svg)
 
 # Consumption
-Examples on how to consume the metadata are included in tests folder.
+Examples on how to consume the metadata are included in tests folder and in our [website code](https://github.com/UoC-Radio/rastapank-site/blob/38da9fe9892bdd3eed168dcb0cc225ed46e81049/src/components/RadioPlayer.js#L106-L129).
